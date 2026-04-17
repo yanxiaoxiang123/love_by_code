@@ -81,16 +81,21 @@ export default function GameLevel({ level, onComplete }: GameLevelProps) {
   const sequenceCompletionProgress = orderedPuzzle
     ? completedSequenceCount / orderedPuzzle.sequence.length
     : 0;
-  const rooftopAmbientOpacity = isRooftopReveal ? 0.42 : 0;
   const nightAmbientOpacity = level.theme === 'night' ? 0.12 + sequenceCompletionProgress * 0.18 : 0;
   const codeAmbientOpacity = level.theme === 'code' ? 0.1 + sequenceCompletionProgress * 0.24 : 0;
 
   // FPS monitoring for adaptive performance
   const isLowPerformance = usePerformanceMode();
+  const shouldReduceRooftopEffects = isRooftopScene && isLowPerformance;
+  const rooftopAmbientOpacity = isRooftopReveal
+    ? shouldReduceRooftopEffects ? 0.22 : 0.42
+    : 0;
 
   // Memoized star positions to avoid re-randomizing on every render
   // Reduce star count on low-performance devices
-  const starCount = isLowPerformance ? 20 : 50;
+  const starCount = isRooftopScene
+    ? isLowPerformance ? 10 : 24
+    : isLowPerformance ? 20 : 50;
   const rooftopStars = useMemo<StarConfig[]>(() => (
     Array.from({ length: starCount }).map(() => ({
       width: Math.random() * 3 + 1,
@@ -100,7 +105,7 @@ export default function GameLevel({ level, onComplete }: GameLevelProps) {
       animationDuration: Math.random() * 3 + 2,
       animationDelay: Math.random() * 2,
     }))
-  ), []);
+  ), [starCount]);
 
   // Camera follows player, clamped to world bounds
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -400,14 +405,16 @@ export default function GameLevel({ level, onComplete }: GameLevelProps) {
           {rooftopStars.map((star, i) => (
             <div
               key={i}
-              className="absolute bg-white rounded-full opacity-50 animate-pulse will-change-transform"
+              className={`absolute bg-white rounded-full opacity-50 will-change-transform ${
+                shouldReduceRooftopEffects ? '' : 'animate-pulse'
+              }`}
               style={{
                 width: star.width + 'px',
                 height: star.height + 'px',
                 top: star.top + '%',
                 left: star.left + '%',
-                animationDuration: star.animationDuration + 's',
-                animationDelay: star.animationDelay + 's',
+                animationDuration: shouldReduceRooftopEffects ? undefined : star.animationDuration + 's',
+                animationDelay: shouldReduceRooftopEffects ? undefined : star.animationDelay + 's',
               }}
             />
           ))}
@@ -612,9 +619,11 @@ export default function GameLevel({ level, onComplete }: GameLevelProps) {
                       </motion.div>
                       <motion.div
                         initial={{ opacity: 0 }}
-                        animate={{ opacity: [0.1, 0.28, 0.14] }}
-                        transition={{ duration: 2.6, repeat: Infinity }}
-                        className="absolute bottom-0 left-1/2 h-10 w-32 -translate-x-1/2 rounded-full bg-pink-300/10 blur-2xl"
+                        animate={shouldReduceRooftopEffects ? { opacity: 0.12 } : { opacity: [0.1, 0.28, 0.14] }}
+                        transition={shouldReduceRooftopEffects ? { duration: 0.3 } : { duration: 2.6, repeat: Infinity }}
+                        className={`absolute bottom-0 left-1/2 h-10 w-32 -translate-x-1/2 rounded-full bg-pink-300/10 ${
+                          shouldReduceRooftopEffects ? 'blur-lg' : 'blur-2xl'
+                        }`}
                       />
                     </>
                   )}
@@ -628,12 +637,16 @@ export default function GameLevel({ level, onComplete }: GameLevelProps) {
                     isAct1
                       ? { y: 0 }
                       : level.theme === 'rooftop' && interacted.includes('bench')
-                        ? { y: [0, -6, -2], x: [0, -3, 0] }
+                        ? shouldReduceRooftopEffects
+                          ? { y: -2, x: 0 }
+                          : { y: [0, -6, -2], x: [0, -3, 0] }
                         : { y: 0 }
                   }
                   transition={
                     level.theme === 'rooftop' && interacted.includes('bench')
-                      ? { duration: 1.2, times: [0, 0.42, 1], ease: 'easeOut' }
+                      ? shouldReduceRooftopEffects
+                        ? { duration: 0.35, ease: 'easeOut' }
+                        : { duration: 1.2, times: [0, 0.42, 1], ease: 'easeOut' }
                       : { duration: 0.2 }
                   }
                 >
@@ -697,12 +710,16 @@ export default function GameLevel({ level, onComplete }: GameLevelProps) {
             className="w-full h-full relative"
             animate={
               isRooftopReveal
-                ? { y: [0, -7, -3], scale: [1, 1.02, 1] }
+                ? shouldReduceRooftopEffects
+                  ? { y: -3, scale: 1 }
+                  : { y: [0, -7, -3], scale: [1, 1.02, 1] }
                 : { y: 0, scale: 1 }
             }
             transition={
               isRooftopReveal
-                ? { duration: 0.9, ease: 'easeOut', times: [0, 0.45, 1] }
+                ? shouldReduceRooftopEffects
+                  ? { duration: 0.35, ease: 'easeOut' }
+                  : { duration: 0.9, ease: 'easeOut', times: [0, 0.45, 1] }
                 : { duration: 0.2 }
             }
           >

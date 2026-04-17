@@ -104,6 +104,9 @@ export default function Outro({ onRestart, onLetterRevealChange }: OutroProps) {
             <div className="pixel-heart mb-16 shadow-[0_0_30px_rgba(244,114,182,0.6)]" />
             
             <div className="space-y-8 text-lg md:text-xl text-white/90 tracking-widest leading-loose text-left inline-block">
+              <motion.p initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2, duration: 1 }}>
+                HXH,
+              </motion.p>
               <motion.p initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5, duration: 1 }}>
                 如果心意也能像代码一样被认真编译，
               </motion.p>
@@ -120,6 +123,14 @@ export default function Outro({ onRestart, onLetterRevealChange }: OutroProps) {
                 className="text-3xl md:text-4xl font-bold text-center mt-12 text-pink-300 drop-shadow-[0_0_15px_rgba(244,114,182,0.5)]"
               >
                 我喜欢你。
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 7, duration: 1 }}
+                className="pt-4 text-right"
+              >
+                From 晏晏
               </motion.p>
             </div>
 
